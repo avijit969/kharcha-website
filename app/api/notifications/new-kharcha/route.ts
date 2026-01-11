@@ -16,32 +16,28 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { kharcha_id, name, amount, khata_id, created_by } = body;
     // get khata name from khata table
-    const { data: khata, error: khataError } = await supabase
+    const { data: khataData, error: khataError } = await supabase
       .from('khata')
       .select('name,created_by:users(full_name)')
       .eq('id', khata_id)
       .single();
-    console.log('Khata:', JSON.stringify(khata,null,2));
+    
+    const khata = khataData as unknown as { name: string, created_by: { full_name: string } | null };
+
     if (khataError) {
-      console.error('Error fetching khata:', khataError);
       return NextResponse.json({ error: 'Failed to fetch khata' }, { status: 500 });
     }
-
-    console.log('New Kharcha Notification Triggered:', { kharcha_id, name, amount, khata_id, created_by, khata_name: khata.name });
-
     if (!kharcha_id || !khata_id) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
     // 1. Get all members of the Khata except the creator
     const { data: members, error: membersError } = await supabase
       .from('members') 
       .select('user_id')
       .eq('khata_id', khata_id)
-      .neq('user_id', created_by); // Don't notify the creator
+      .neq('user_id', created_by);
 
     if (membersError) {
-      console.error('Error fetching members:', membersError);
       return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
     }
 
@@ -50,35 +46,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'No members to notify' });
     }
 
-    // Filter out null user_ids if any (though schema says user_id is nullable, logic implies valid users)
-    const userIds = members.map(m => m.user_id).filter((id): id is string => id !== null);
+    // get all users except the creator
+    const userIds = members.map(m => m.user_id).filter((id): id is string => id !== created_by);
 
     if (userIds.length === 0) {
-        console.log('No valid user IDs found to notify');
         return NextResponse.json({ message: 'No valid user IDs found' });
     }
-
-    // 2. Get Push Tokens for these users from logged_in_devices
-    // 'logged_in_devices' table has 'expo_push_token' and 'user_id'
-    const { data: devices, error: devicesError } = await supabase
+    // get Push Tokens for these users from logged_in_devices
+    const { data: devicesData, error: devicesError } = await supabase
       .from('logged_in_devices')
       .select('expo_push_token')
       .in('user_id', userIds)
       .not('expo_push_token', 'is', null);
 
     if (devicesError) {
-      console.error('Error fetching tokens:', devicesError);
       return NextResponse.json({ error: 'Failed to fetch push tokens' }, { status: 500 });
     }
+    
+    const devices = devicesData ? devicesData.map(d => d.expo_push_token) : [];
+
 
     if (!devices || devices.length === 0) {
-       console.log('No push tokens found for members.');
        return NextResponse.json({ message: 'No push tokens found' });
     }
 
-    const pushTokens = devices.map(p => p.expo_push_token).filter(token => token && Expo.isExpoPushToken(token)) as string[];
+    const pushTokens = devices.filter(token => token && Expo.isExpoPushToken(token)) as string[];
 
-    // 3. Send Notifications
     const messages: ExpoPushMessage[] = [];
     for (const pushToken of pushTokens) {
       messages.push({
@@ -97,14 +90,13 @@ export async function POST(req: NextRequest) {
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         tickets.push(...ticketChunk);
       } catch (error) {
-        console.error('Error sending push notification chunk:', error);
+        return NextResponse.json({ error: 'Failed to send push notifications' }, { status: 500 });
       }
     }
 
     return NextResponse.json({ success: true, ticketsCount: tickets.length });
 
   } catch (error) {
-    console.error('Webhook Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
