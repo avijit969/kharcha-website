@@ -32,8 +32,7 @@ export const CTA = () => {
                     whileTap={{ scale: 0.95 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    href="/kharcha.apk"
-                    download
+                    href="https://pub-6920084430834985bcce8c3128f020b5.r2.dev/kharcha.apk"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-purple-600 text-white rounded-full text-lg font-semibold hover:bg-purple-700 transition-all shadow-xl hover:shadow-purple-500/25"
                 >
                     <DownTrayIcon className="w-5 h-5" />
