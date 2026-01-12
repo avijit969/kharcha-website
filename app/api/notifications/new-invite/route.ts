@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch Invitee details (User being invited)
     const { data: invitee, error: inviteeError } = await supabase
       .from('users')
-      .select('email, full_name')
+      .select('id,email, full_name')
       .eq('id', invited_to_id)
       .single();
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
           body: `${inviter.full_name} invited you to join this Khata.`,
           is_viewed: false,
           data: {
-            url: `/accept_invite/${invited_to_id}`,
+            url: `/accept_invite/${invitee.id}`,
           }
         },
       ])
