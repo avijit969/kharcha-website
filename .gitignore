@@ -40,3 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 supabase/triggers.sql
+supabase/invite_trigger.sql

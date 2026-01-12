@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     // 1. Get all members of the Khata except the creator
     const { data: members, error: membersError } = await supabase
       .from('members') 
-      .select('user_id')
+      .select('user_id,created_by:users(full_name)')
       .eq('khata_id', khata_id)
       .neq('user_id', created_by);
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // get all users except the creator
     const userIds = members.map(m => m.user_id).filter((id): id is string => id !== created_by);
-
+    const kharchaCreatedBy = members.find(m => m.user_id === created_by)?.created_by?.full_name;
     if (userIds.length === 0) {
         return NextResponse.json({ message: 'No valid user IDs found' });
     }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         to: pushToken,
         sound: 'default',
         title: `New kharcha is added in ${khata.name}`,
-        body: `${name} - ₹${amount} added by ${khata.created_by?.full_name}`,
+        body: `${name} - ₹${amount} added by ${kharchaCreatedBy}`,
         data: { kharcha_id, khata_id },
       });
     }
