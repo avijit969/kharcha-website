@@ -15,13 +15,13 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { kharcha_id, name, amount, khata_id, created_by } = body;
+    console.log("created_by",created_by)
     // get khata name from khata table
     const { data: khataData, error: khataError } = await supabase
       .from('khata')
       .select('name,created_by:users(full_name)')
       .eq('id', khata_id)
       .single();
-    
     const khata = khataData as unknown as { name: string, created_by: { full_name: string } | null };
 
     if (khataError) {
@@ -30,12 +30,11 @@ export async function POST(req: NextRequest) {
     if (!kharcha_id || !khata_id) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    // 1. Get all members of the Khata except the creator
+    // 1. Get all members of the Khata
     const { data: members, error: membersError } = await supabase
       .from('members') 
       .select('user_id,created_by:users(full_name)')
-      .eq('khata_id', khata_id)
-      .neq('user_id', created_by);
+      .eq('khata_id', khata_id);
 
     if (membersError) {
       return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
