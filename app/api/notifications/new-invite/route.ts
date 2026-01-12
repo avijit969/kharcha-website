@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
         {
           user_id: invited_to_id,
           type: 'invite',
-          khata_id: khata_id,
           title: `You're invited to ${khata.name}`,
           body: `${inviter.full_name} invited you to join this Khata.`,
           is_viewed: false,
