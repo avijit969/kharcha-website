@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       from: 'Kharcha <kharcha@trivyaa.in>',
       to: [email],
       subject: 'Welcome to Kharcha! 🎉',
-      react: await WelcomeEmail({ name }),
+      react: WelcomeEmail({ name }),
     });
 
     if (error) {

@@ -63,6 +63,8 @@ export async function POST(req: NextRequest) {
           user_id: invited_to_id,
           type: 'invite',
           khata_id: khata_id,
+          title: `You're invited to ${khata.name}`,
+          body: `${inviter.full_name} invited you to join this Khata.`,
           is_viewed: false,
           data: {
             url: `/accept_invite/${invited_to_id}`,
@@ -109,10 +111,11 @@ export async function POST(req: NextRequest) {
                 from: 'Kharcha <kharcha@trivyaa.in>',
                 to: [invitee.email],
                 subject: `Invitation to join ${khata.name} on Kharcha`,
-                react: await InviteEmail({ 
+                react: InviteEmail({ 
                     inviterName: inviter.full_name || 'A user', 
                     khataName: khata.name || 'a group',
                 }),
+                text: `${inviter.full_name || 'A user'} invited you to join ${khata.name || 'a group'} on Kharcha. Check it out at https://kharcha.trivyaa.in`,
             });
         } catch (emailError) {
             console.error('Error sending email', emailError);
