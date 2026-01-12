@@ -26,9 +26,9 @@ export const InviteEmail = ({ inviterName, khataName, inviteLink = 'https://khar
 
     return (
         <Html>
-            <Head />
             <Preview>{previewText}</Preview>
             <Tailwind>
+                <Head />
                 <Body className="bg-slate-50 my-auto mx-auto font-sans">
                     <Container className="bg-white border border-solid border-[#eaeaea] rounded-lg my-[40px] mx-auto p-[20px] max-w-[465px] shadow-sm">
 
