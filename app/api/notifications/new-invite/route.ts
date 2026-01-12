@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const payload = body.record || body;
-    const { invited_by_id, invited_to_id, khata_id } = payload;
+    const { invited_by_id, invited_to_id, khata_id,id } = payload;
 
-    if (!invited_by_id || !invited_to_id || !khata_id) {
+    if (!invited_by_id || !invited_to_id || !khata_id || !id) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
           body: `${inviter.full_name} invited you to join this Khata.`,
           is_viewed: false,
           data: {
-            url: `/accept_invite/${invitee.id}`,
+            url: `/accept_invite/${id}`,
           }
         },
       ])
